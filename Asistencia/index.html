@@ -2,61 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Asistencia_INTO_2026 - Profesional</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <title>INTO Attendance - Sistema Final</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #00d4ff; --bg: #0f172a; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; margin: 0; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; width: 100%; max-width: 500px; }
-        .btn { background: transparent; color: white; border: 2px solid var(--accent); padding: 12px 30px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-weight: 600; margin: 10px 0; display: block; width: 100%; }
-        .btn:hover { background: var(--accent); color: #000; }
-        select { width: 100%; padding: 12px; border-radius: 10px; background: #1e293b; color: white; border: 1px solid var(--accent); margin: 15px 0; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 400px; margin: auto; text-align: center; }
+        .btn { border: 2px solid var(--accent); background: transparent; color: white; padding: 10px; width: 100%; border-radius: 20px; cursor: pointer; margin: 10px 0; }
         .seccion { display: none; } .activo { display: block; }
-        #qr-contenedor { display: flex; justify-content: center; margin-top: 15px; background: white; padding: 10px; border-radius: 10px; min-height: 180px; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; color: white; }
-        th, td { border: 1px solid var(--accent); padding: 8px; text-align: left; }
+        #reader { width: 100%; min-height: 250px; background: black; border-radius: 10px; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; color: white; }
+        th, td { border: 1px solid var(--accent); padding: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- MENÚ -->
-        <div id="menu-rol" class="card seccion activo">
-            <h1>Asistencia_INTO_2026</h1>
-            <button class="btn" onclick="mostrarSeccion('seccion-alumno')">ESTUDIANTE</button>
-            <button class="btn" onclick="mostrarSeccion('seccion-docente')">DOCENTE</button>
-        </div>
-
-        <!-- ALUMNO -->
-        <div id="seccion-alumno" class="card seccion">
-            <h2>Escanear QR</h2>
-            <div id="reader" style="width: 100%; border-radius: 10px; overflow: hidden;"></div>
-            <button class="btn" onclick="location.reload()">VOLVER</button>
+    <div id="menu" class="card seccion activo">
+        <h1>INTO Attendance</h1>
+        <button class="btn" onclick="iniciarEscaner()">ESTUDIANTE</button>
+        <button class="btn" onclick="mostrarSeccion('seccion-docente')">DOCENTE</button>
     </div>
-        
-        <!-- DOCENTE -->
-        <div id="seccion-docente" class="card seccion">
-            <h2>Panel Docente</h2>
-            <select id="selectorGrado" onchange="generarQR()">
-                <option value="">-- Selecciona Grado --</option>
-                <option value="1 Software A">1 Software A</option>
-                <option value="2 Software A">2 Software A</option>
-                <option value="3 Software A">3 Software A</option>
-                <option value="2 General B">2 General B</option>
-                <option value="2 General C">2 General C</option>
-                <option value="2 General D">2 General D</option>
-            </select>
-            <div id="qr-contenedor"></div>
-            
-            <!-- Botón para Ver Reportes -->
-            <button class="btn" onclick="cargarReporte()">VER REPORTES</button>
-            <div id="area-reporte"></div>
-                </div>
+
+    <div id="seccion-alumno" class="card seccion">
+        <h2>Escanear QR</h2>
+        <div id="reader"></div>
+        <button class="btn" onclick="location.reload()">VOLVER</button>
+    </div>
+
+    <div id="seccion-docente" class="card seccion">
+        <h2>Panel Docente</h2>
+        <select id="selectorGrado" onchange="generarQR()" style="width:100%; padding:10px;">
+            <option value="">-- Selecciona Grado --</option>
+            <option value="1 Software A">1 Software A</option>
+            <option value="2 Software A">2 Software A</option>
+            <option value="3 Software A">3 Software A</option>
+            <option value="2 General B">2 General B</option>
+            <option value="2 General C">2 General C</option>
+            <option value="2 General D">2 General D</option>
+        </select>
+        <div id="qr-contenedor" style="margin-top:15px; background:white; padding:10px; display:inline-block;"></div>
+        <button class="btn" onclick="cargarReporte()">VER REPORTES</button>
+        <div id="area-reporte"></div>
+        <button class="btn" onclick="location.reload()">VOLVER</button>
     </div>
 
     <script>
+        const URL_APP = "https://script.google.com/macros/s/AKfycbwjnkHQrl9VGY3X6rfHcvzrSE9RDxJMXjJhsF2eFtBzdOxikx77x1-BCtJXRp_Uk3K-RA/exec";
+
         function mostrarSeccion(id) {
             document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activo'));
             document.getElementById(id).classList.add('activo');
@@ -64,70 +56,28 @@
 
         function iniciarEscaner() {
             mostrarSeccion('seccion-alumno');
-    
-            // Configuración profesional del escáner
-            let html5QrCode = new Html5Qrcode("reader");
-    
-            html5QrCode.start(
-            { facingMode: "environment" }, // Usa la cámara trasera
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            (decodedText) => {
-                // Cuando lee el QR exitosamente
-                html5QrCode.stop(); // Detenemos la cámara
-                let info = JSON.parse(decodedText); 
-            
-                // Enviamos al script
-                fetch('TU_URL_DE_APPS_SCRIPT_AQUI', { 
-                    method: 'POST',
-                    body: JSON.stringify({ grado: info.grado, alumno: "Alumno" })
-                }).then(() => { 
-                    alert("¡Asistencia registrada con éxito en: " + info.grado + "!"); 
-                    location.reload(); 
-                });
-            },
-            (errorMessage) => {
-                // Esto se ejecuta mientras escanea (es normal, no lo borres)
-                console.log(errorMessage);
-            }
-        ).catch(err => {
-            // Si hay error (ej. el usuario no dio permiso a la cámara)
-            document.getElementById('reader').innerHTML = 
-                "<p style='color:red;'>Error: No se pudo acceder a la cámara. Revisa los permisos del navegador.</p>";
-        });
-    }
+            new Html5Qrcode("reader").start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
+                let info = JSON.parse(decodedText);
+                fetch(URL_APP, { method: 'POST', body: JSON.stringify({ grado: info.grado, alumno: "Alumno" }) })
+                .then(() => { alert("Asistencia registrada: " + info.grado); location.reload(); });
+            });
+        }
 
         function generarQR() {
             const grado = document.getElementById('selectorGrado').value;
-            const contenedor = document.getElementById('qr-contenedor');
-            contenedor.innerHTML = "";
-            if (grado) {
-                new QRCode(contenedor, { text: JSON.stringify({ grado: grado }), width: 180, height: 180 });
-            }
+            const cont = document.getElementById('qr-contenedor');
+            cont.innerHTML = "";
+            if(grado) new QRCode(cont, JSON.stringify({ grado: grado }));
         }
 
         function cargarReporte() {
             const area = document.getElementById('area-reporte');
-            area.innerHTML = "Cargando..."; // Limpia el contenido anterior y muestra aviso
-
-            fetch('https://script.google.com/macros/s/AKfycbwjnkHQrl9VGY3X6rfHcvzrSE9RDxJMXjJhsF2eFtBzdOxikx77x1-BCtJXRp_Uk3K-RA/exec') 
-                .then(res => res.json())
-                .then(data => {
-                    // Limpiamos el área antes de dibujar
-                    area.innerHTML = ""; 
-                    
-                    // Creamos la tabla desde cero
-                    let html = "<table style='width:100%; border: 1px solid white; border-collapse: collapse;'>";
-                    html += "<tr><th>Fecha</th><th>Alumno</th></tr>";
-            
-                    // Recorremos los datos (empezando en 1 para saltar encabezados de Sheets)
-                    for(let i = 1; i < data.length; i++) {
-                        html += `<tr><td>${data[i][0]}</td><td>${data[i][2]}</td></tr>`;
-                    }
-                    html += "</table>";
-            
-                    // Inyectamos la tabla limpia
-                    area.innerHTML = html;
-                });
+            area.innerHTML = "Cargando...";
+            fetch(URL_APP).then(res => res.json()).then(data => {
+                let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
+                for(let i=1; i<data.length; i++) html += `<tr><td>${data[i][0].substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
+                area.innerHTML = html + "</table>";
+            });
         }
     </script>
 </body>
