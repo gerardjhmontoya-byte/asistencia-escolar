@@ -93,7 +93,7 @@
             area.innerHTML = "Cargando...";
             
             // Se agrega "&t=" + new Date().getTime() para evitar que el navegador cargue datos viejos de la caché
-            fetch("https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec" + "?grado=" + encodeURIComponent(grado) + "&t=" + new Date().getTime())
+            fetch("https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec + "?grado=" + encodeURIComponent(grado) + "&t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
