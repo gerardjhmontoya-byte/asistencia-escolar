@@ -2,23 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Asistencia_INTO_2026 - Sistema Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia INTO 2026</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #00d4ff; --bg: #0f172a; }
         body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
         .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 400px; margin: auto; text-align: center; }
-        .btn { border: 2px solid var(--accent); background: transparent; color: white; padding: 10px; width: 100%; border-radius: 20px; cursor: pointer; margin: 10px 0; }
+        .btn { border: 2px solid var(--accent); background: transparent; color: white; padding: 12px; width: 100%; border-radius: 20px; cursor: pointer; margin: 10px 0; font-weight: bold; }
         .seccion { display: none; } .activo { display: block; }
-        #reader { width: 100%; min-height: 250px; background: black; border-radius: 10px; }
-        table { width: 100%; margin-top: 15px; border-collapse: collapse; color: white; }
-        th, td { border: 1px solid var(--accent); padding: 5px; font-size: 12px; }
+        #reader { width: 100%; min-height: 300px; background: #000; border-radius: 10px; margin-bottom: 10px; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid var(--accent); padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
+
     <div id="menu" class="card seccion activo">
-        <h1>Asistencia_INTO_2026</h1>
+        <h1>Asistencia INTO 2026</h1>
         <button class="btn" onclick="iniciarEscaner()">ESTUDIANTE</button>
         <button class="btn" onclick="mostrarSeccion('seccion-docente')">DOCENTE</button>
     </div>
@@ -31,7 +33,7 @@
 
     <div id="seccion-docente" class="card seccion">
         <h2>Panel Docente</h2>
-        <select id="selectorGrado" onchange="generarQR()" style="width:100%; padding:10px;">
+        <select id="selectorGrado" onchange="generarQR()" style="width:100%; padding:10px; border-radius:5px;">
             <option value="">-- Selecciona Grado --</option>
             <option value="1 Software A">1 Software A</option>
             <option value="2 Software A">2 Software A</option>
@@ -56,11 +58,15 @@
 
         function iniciarEscaner() {
             mostrarSeccion('seccion-alumno');
-            new Html5Qrcode("reader").start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
-                let info = JSON.parse(decodedText);
-                fetch(URL_APP, { method: 'POST', body: JSON.stringify({ grado: info.grado, alumno: "Alumno" }) })
-                .then(() => { alert("Asistencia registrada: " + info.grado); location.reload(); });
-            });
+            new Html5Qrcode("reader").start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: 200 },
+                (decodedText) => {
+                    let info = JSON.parse(decodedText);
+                    fetch(URL_APP, { method: 'POST', body: JSON.stringify({ grado: info.grado, alumno: "Alumno" }) })
+                    .then(() => { alert("¡Asistencia registrada en " + info.grado + "!"); location.reload(); });
+                }
+            );
         }
 
         function generarQR() {
@@ -73,14 +79,20 @@
         function cargarReporte() {
             const grado = document.getElementById('selectorGrado').value;
             const area = document.getElementById('area-reporte');
-            area.innerHTML = "Cargando...";
-            fetch("https://script.google.com/macros/s/AKfycbwjnkHQrl9VGY3X6rfHcvzrSE9RDxJMXjJhsF2eFtBzdOxikx77x1-BCtJXRp_Uk3K-RA/exec + "?grado=" + encodeURIComponent(grado))
+            if(!grado) { alert("Selecciona un grado primero"); return; }
+            area.innerHTML = "Cargando datos...";
+            
+            fetch("https://script.google.com/macros/s/AKfycbw31rWZkdwhqgCcKEGzDO8nu9VaiXjRVU5thjslBx_llUtXKHbuE858rO81zsNI4jae/exec" + "?grado=" + encodeURIComponent(grado))
             .then(res => res.json())
             .then(data => {
                 let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
-                for(let i=1; i<data.length; i++) html += `<tr><td>${data[i][0].substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
+                // Empezamos en 1 para omitir encabezados
+                for(let i=1; i<data.length; i++) {
+                    html += `<tr><td>${data[i][0].toString().substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
+                }
                 area.innerHTML = html + "</table>";
-            });
+            })
+            .catch(err => area.innerHTML = "Error al cargar. Verifica permisos.");
         }
     </script>
 </body>
