@@ -12,22 +12,25 @@
         .card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 400px; margin: auto; text-align: center; }
         .btn { border: 2px solid var(--accent); background: transparent; color: white; padding: 12px; width: 100%; border-radius: 20px; cursor: pointer; margin: 10px 0; font-weight: bold; }
         .seccion { display: none; } .activo { display: block; }
-        #reader { width: 100%; min-height: 300px; background: #000; border-radius: 10px; margin-bottom: 10px; }
-        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 14px; }
-        th, td { border: 1px solid var(--accent); padding: 8px; text-align: left; }
+        #reader { width: 100%; min-height: 250px; background: black; border-radius: 10px; margin-bottom: 10px; }
+        input { width: 90%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; color: white; }
+        th, td { border: 1px solid #444; padding: 8px; }
     </style>
 </head>
 <body>
 
     <div id="menu" class="card seccion activo">
         <h1>Asistencia INTO 2026</h1>
-        <button class="btn" onclick="iniciarEscaner()">ESTUDIANTE</button>
+        <button class="btn" onclick="mostrarSeccion('seccion-alumno')">ESTUDIANTE</button>
         <button class="btn" onclick="mostrarSeccion('seccion-docente')">DOCENTE</button>
     </div>
 
     <div id="seccion-alumno" class="card seccion">
-        <h2>Escanear QR</h2>
+        <h2>Registro de Asistencia</h2>
+        <input type="text" id="nombreAlumno" placeholder="Escribe tu nombre completo">
         <div id="reader"></div>
+        <button class="btn" onclick="iniciarEscaner()">INICIAR ESCÁNER</button>
         <button class="btn" onclick="location.reload()">VOLVER</button>
     </div>
 
@@ -49,7 +52,7 @@
     </div>
 
     <script>
-        const URL_APP = "https://script.google.com/macros/s/AKfycbzwHE24twmR_NB8itk__6tuFrGq6w_gwyqQv8cq5Fmu8X96mOzkpjiNgS9VP3vdh3je-A/exec";
+        const URL_APP = "https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec";
 
         function mostrarSeccion(id) {
             document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activo'));
@@ -57,16 +60,23 @@
         }
 
         function iniciarEscaner() {
-            mostrarSeccion('seccion-alumno');
-            new Html5Qrcode("reader").start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: 200 },
-                (decodedText) => {
-                    let info = JSON.parse(decodedText);
-                    fetch(URL_APP, { method: 'POST', body: JSON.stringify({ grado: info.grado, alumno: "Alumno" }) })
-                    .then(() => { alert("¡Asistencia registrada en " + info.grado + "!"); location.reload(); });
-                }
-            );
+            const nombre = document.getElementById('nombreAlumno').value;
+            if (!nombre) { alert("¡Escribe tu nombre primero!"); return; }
+            
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
+                html5QrCode.stop();
+                let info = JSON.parse(decodedText);
+                fetch(URL_APP, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ grado: info.grado, alumno: nombre }) 
+                })
+                .then(res => res.text())
+                .then(msg => {
+                    alert(msg === "Duplicado" ? "Ya estás registrado." : "¡Asistencia registrada, " + nombre + "!");
+                    location.reload();
+                });
+            });
         }
 
         function generarQR() {
@@ -79,34 +89,16 @@
         function cargarReporte() {
             const grado = document.getElementById('selectorGrado').value;
             const area = document.getElementById('area-reporte');
-            if(!grado) { alert("Selecciona un grado primero"); return; }
-    
+            if(!grado) { alert("Selecciona un grado"); return; }
             area.innerHTML = "Cargando...";
-    
-            // Usamos la URL_APP actualizada
-            fetch("https://script.google.com/macros/s/AKfycbzwHE24twmR_NB8itk__6tuFrGq6w_gwyqQv8cq5Fmu8X96mOzkpjiNgS9VP3vdh3je-A/exec" + "?grado=" + encodeURIComponent(grado))
+            fetch("https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec" + "?grado=" + encodeURIComponent(grado))
             .then(res => res.json())
             .then(data => {
-                if(data.length <= 1) {
-                    area.innerHTML = "No hay registros aún para " + grado;
-                    return;
-                }
-        
-                let html = "<table><tr><th>Fecha</th><th>Grado</th><th>Alumno</th></tr>";
-                for(let i=1; i < data.length; i++) {
-                    html += `<tr>
-                         <td>${data[i][0].toString().slice(0, 10)}</td>
-                         <td>${data[i][1]}</td>
-                         <td>${data[i][2]}</td>
-                    </tr>`;
-                }
+                let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
+                for(let i=1; i<data.length; i++) html += `<tr><td>${data[i][0].toString().substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
                 area.innerHTML = html + "</table>";
-            })
-            .catch(err => {
-                area.innerHTML = "Error al conectar. ¿Actualizaste la implementación?";
-                console.log(err);
-        });
-    }
+            });
+        }
     </script>
 </body>
 </html>
