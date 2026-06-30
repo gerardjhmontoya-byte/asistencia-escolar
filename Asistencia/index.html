@@ -15,7 +15,7 @@
         #reader { width: 100%; min-height: 250px; background: black; border-radius: 10px; margin-bottom: 10px; }
         input { width: 90%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; }
         table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; color: white; }
-        th, td { border: 1px solid #444; padding: 8px; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
@@ -73,7 +73,7 @@
                 })
                 .then(res => res.text())
                 .then(msg => {
-                    alert(msg === "Duplicado" ? "Ya estás registrado." : "¡Asistencia registrada, " + nombre + "!");
+                    alert(msg === "Duplicado" ? "Ya estás registrado." : "¡Asistencia registrada!");
                     location.reload();
                 });
             });
@@ -91,13 +91,18 @@
             const area = document.getElementById('area-reporte');
             if(!grado) { alert("Selecciona un grado"); return; }
             area.innerHTML = "Cargando...";
-            fetch("https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec" + "?grado=" + encodeURIComponent(grado))
+            
+            // Se agrega "&t=" + new Date().getTime() para evitar que el navegador cargue datos viejos de la caché
+            fetch("https://script.google.com/macros/s/AKfycbx4z4apegkm5tYwKposGro1UEHRdd8q05NmHEnuY9rrgWNpycZk1sBGceXOXzOWPA7njA/exec" + "?grado=" + encodeURIComponent(grado) + "&t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
-                for(let i=1; i<data.length; i++) html += `<tr><td>${data[i][0].toString().substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
+                for(let i=1; i<data.length; i++) {
+                    html += `<tr><td>${data[i][0].toString().substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
+                }
                 area.innerHTML = html + "</table>";
-            });
+            })
+            .catch(err => area.innerHTML = "Error: Asegúrate de que el acceso esté como 'Cualquier persona'.");
         }
     </script>
 </body>
