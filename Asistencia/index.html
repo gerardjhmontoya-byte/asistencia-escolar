@@ -52,7 +52,7 @@
     </div>
 
     <script>
-        const URL_APP = "https://script.google.com/macros/s/AKfycbz5EBtJbpFZkjX65ILxIVKuguodZ6uwFiI7WknJTTZqLYhrMOIDaWsZPBTLpLjZpLjnJA/exec";
+        const URL_APP = "https://script.google.com/macros/s/AKfycby14SGDqlOA9bvS06WJjHT-97C2XdpbnCqwLhvowrM-ebOjiC6n0x5NXzq8vZF9VrnB9A/exec";
 
         function mostrarSeccion(id) {
             document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activo'));
@@ -93,7 +93,7 @@
             area.innerHTML = "Cargando...";
             
             // Se agrega "&t=" + new Date().getTime() para evitar que el navegador cargue datos viejos de la caché
-            fetch("https://script.google.com/macros/s/AKfycbz5EBtJbpFZkjX65ILxIVKuguodZ6uwFiI7WknJTTZqLYhrMOIDaWsZPBTLpLjZpLjnJA/exec" + "?grado=" + encodeURIComponent(grado) + "&t=" + new Date().getTime())
+            fetch("https://script.google.com/macros/s/AKfycby14SGDqlOA9bvS06WJjHT-97C2XdpbnCqwLhvowrM-ebOjiC6n0x5NXzq8vZF9VrnB9A/exec" + "?grado=" + encodeURIComponent(grado) + "&t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
