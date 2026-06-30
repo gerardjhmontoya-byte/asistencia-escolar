@@ -71,9 +71,12 @@
         }
 
         function cargarReporte() {
+            const grado = document.getElementById('selectorGrado').value;
             const area = document.getElementById('area-reporte');
             area.innerHTML = "Cargando...";
-            fetch(URL_APP).then(res => res.json()).then(data => {
+            fetch(https://script.google.com/macros/s/AKfycbwjnkHQrl9VGY3X6rfHcvzrSE9RDxJMXjJhsF2eFtBzdOxikx77x1-BCtJXRp_Uk3K-RA/exec + "?grado=" + encodeURIComponent(grado))
+            .then(res => res.json())
+            .then(data => {
                 let html = "<table><tr><th>Fecha</th><th>Alumno</th></tr>";
                 for(let i=1; i<data.length; i++) html += `<tr><td>${data[i][0].substring(0,10)}</td><td>${data[i][2]}</td></tr>`;
                 area.innerHTML = html + "</table>";
